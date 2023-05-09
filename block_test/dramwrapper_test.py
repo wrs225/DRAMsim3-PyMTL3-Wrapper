@@ -1,5 +1,5 @@
 #=========================================================================
-# IntMulFixedLatRTL_test
+# dramwrapper_test
 #=========================================================================
 
 import pytest
@@ -27,13 +27,13 @@ class TestHarness( Component ):
 
     # Instantiate models
 
-    s.src  = stream.SourceRTL( MemMsg )
-    s.sink = stream.SinkRTL  ( MemMsg )
+    s.src      = stream.SourceRTL( MemMsg )
+    s.sink     = stream.SinkRTL  ( MemMsg )
     s.memmodel = memmodel
 
     # Connect
 
-    s.src.send  //= s.memmodel.istream
+    s.src.send         //= s.memmodel.istream
     s.memmodel.ostream //= s.sink.recv
 
   def done( s ):
@@ -107,7 +107,7 @@ test_case_table = mk_test_case_table([
 @pytest.mark.parametrize( **test_case_table )
 def test( test_params, cmdline_opts ):
 
-  print("here")
+
   th = TestHarness( DramSimPymtlWrapper() )
 
   msgs = test_params.msgs()
