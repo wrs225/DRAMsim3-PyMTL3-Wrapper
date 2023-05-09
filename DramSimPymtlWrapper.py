@@ -23,26 +23,30 @@ class DramSimPymtlWrapper( Component ):
     #DRAM CLK is 1333MHz, let's say our system is 4000MHz
     def construct(s, RTL_CLK_PER = 3, INPUT_CONFIG = u'../DDR3_1Gb_x8_1333.ini', OUTPUT_CONFIG = u'./', mem_nwords = (1_000_000_000 // 8) // 8):
         
-        s.istream= stream.ifcs.RecvIfcRTL(MemMsg)
-        s.ostream = stream.ifcs.SendIfcRTL(MemMsg)
+        s.istream= stream.ifcs.RecvIfcRTL( MemMsg )
+        s.ostream = stream.ifcs.SendIfcRTL( MemMsg )
 
         # Define two queues with depth 1
         s.queue1 = stream.queues.NormalQueueRTL( MemMsg, 1)
         s.queue2 = stream.queues.NormalQueueRTL( MemMsg, 1)
 
+        #assign queues to interface
         s.queue1.recv //= s.istream
         s.ostream //= s.queue2.send
-
-        s.in_flight = Wire(Bits1)
-        s.memsystem_rdy = Wire(Bits1)
-        s.rtl_clk_cycles = Wire(Bits32) 
-
+        
+        #Wires so I can divide the clock and see the status of DRAMsim3 stalling in simulation.
+        #in_flight is needed to hold state. This module is a weird combo of hardware and software.
+        s.in_flight = Wire( Bits1 )
+        s.memsystem_rdy = Wire( Bits1 )
+        s.rtl_clk_cycles = Wire( Bits32 ) 
+        
+        #Bytearray to hold values we store.
         s.mem = bytearray(mem_nwords * 8)
-
+        
+        #DRAMsim3 memory model object to get latency.
         s.drammodel = MemorySystem(INPUT_CONFIG,OUTPUT_CONFIG,callback_read,callback_write)
 
-        # Define a functional level block that takes one element from queue1,
-        # increments its value by 1, and puts it in queue2
+        #Combinational block
         @update
         def increment():
             
@@ -57,6 +61,7 @@ class DramSimPymtlWrapper( Component ):
                 s.queue2.recv.val @= Bits1(0)
                 s.queue1.send.rdy @= Bits1(0)
             
+            #function call in combinational block is sus to me. 
             if s.queue1.send.msg.w and s.in_flight:
                 s.queue2.recv.msg.msg @= s.queue1.send.msg.msg
                 write_bytearray_bits(s.mem, s.queue1.send.msg.addr, 8, s.queue1.send.msg.msg)
@@ -64,12 +69,7 @@ class DramSimPymtlWrapper( Component ):
                 s.queue2.recv.msg.msg @= read_bytearray_bits(s.mem, s.queue1.send.msg.addr, 8)
 
             
-
-
-
-        # Connect the input and output streams to the queues
-       
-
+        #Clocked block. DRAM clock division & adding transactions to DRAM model
         @update_ff
         def block():
             if(s.reset):
