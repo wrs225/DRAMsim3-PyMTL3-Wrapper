@@ -39,3 +39,7 @@ The queues act as interfaces which stich together the DRAMsim3 library and pyMTL
 ```
 
 Have fun experimenting! This library should make it trivially easy to implement cycle-accurate DRAM into your designs. 
+
+Attribution:
+[1] S. Li, Z. Yang, D. Reddy, A. Srivastava and B. Jacob, "DRAMsim3: a Cycle-accurate, Thermal-Capable DRAM Simulator," in IEEE Computer Architecture Letters. Link
+
