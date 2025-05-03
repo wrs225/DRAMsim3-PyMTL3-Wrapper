@@ -6,6 +6,8 @@ Welcome to my DRAMsim3 pyMTL3 stream interface wrapper! This wrapper is based of
 https://github.com/wrs225/DRAMSim3-Python-Wrapper.git
 ```
 
+Make sure you install Python 3.7, pymtl3, and fxpmath packages.
+
 
 To run tests please run the following commands
 ```
